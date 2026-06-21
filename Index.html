@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gett.Dot Member Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #22C55E; --primary-dark: #16A34A;
+      --text-dark: #1E293B; --text-gray: #64748B;
+      --bg-light: #F8FAFC; --bg-white: #FFFFFF; --border-color: #E2E8F0;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --radius-md: 12px; --radius-lg: 16px; --radius-pill: 50px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body { background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .bg-gradient-login { position: fixed; bottom: 0; left: 0; right: 0; height: 60vh; background: linear-gradient(to top, rgba(34, 197, 94, 0.15) 0%, rgba(248, 250, 252, 0) 100%); z-index: -1; }
+    .app-container { width: 100%; max-width: 480px; padding: 40px 24px; margin: 0 auto; }
+
+    .logo-container { text-align: center; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center; }
+    .logo-img { width: 80px; height: 80px; margin-bottom: 16px; background: #fff; border-radius: 50%; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--primary); overflow: hidden; }
+    .logo-img img { width: 100%; height: 100%; object-fit: cover; }
+    .app-title { font-size: 24px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; }
+
+    #loginPage, #registerPage, #dashboardPage { width: 100%; animation: fadeIn 0.4s ease; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-wrapper { position: relative; }
+    .form-control { width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 15px; background: var(--bg-white); transition: all 0.3s ease; outline: none; }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+    .toggle-password { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94A3B8; cursor: pointer; font-size: 18px; }
+    .remember-me { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; cursor: pointer; }
+    .remember-me input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+    .remember-me label { font-size: 14px; font-weight: 600; color: var(--text-dark); cursor: pointer; }
+
+    .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+    .btn-login:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .register-link { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-gray); font-weight: 500; }
+    .register-link a { color: var(--primary); font-weight: 700; text-decoration: none; }
+
+    .welcome-text { text-align: center; font-size: 14px; color: var(--text-dark); margin-bottom: 4px; font-weight: 500; }
+    .warning-text { text-align: center; font-size: 13px; color: var(--text-gray); margin-bottom: 30px; }
+
+    .menu-list { display: flex; flex-direction: column; gap: 14px; }
+    .menu-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-white); padding: 18px 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 15px; transition: all 0.2s ease; border-left: 5px solid transparent; cursor: pointer; }
+    .menu-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .menu-item-left { display: flex; align-items: center; gap: 16px; }
+    .menu-icon-wrapper { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+    .badge-note { background: #F8FAFC; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 6px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9000; display: none; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; overflow-y: auto; }
+    .modal-content { background: var(--bg-white); border-radius: var(--radius-lg); width: 100%; max-width: 440px; padding: 28px; box-shadow: var(--shadow-md); position: relative; margin: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+    .modal-close { background: none; border: none; font-size: 24px; color: var(--text-gray); cursor: pointer; line-height: 1; }
+
+    .folder-body { max-height: 400px; overflow-y: auto; padding-right: 4px; }
+    .folder-body::-webkit-scrollbar { width: 6px; }
+    .folder-body::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 3px; }
+
+    .video-card, .project-card, .testi-card { background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: background 0.2s; }
+    .project-card { justify-content: space-between; }
+    .project-info { display: flex; flex-direction: column; gap: 4px; }
+    .qty-control { display: flex; align-items: center; gap: 10px; background: #F1F5F9; border-radius: 8px; padding: 4px; }
+    .qty-control button { background: #fff; border: 1px solid #CBD5E1; border-radius: 4px; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #E2E8F0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; left: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 10000; pointer-events: none; }
+    .toast { padding: 14px 20px; border-radius: var(--radius-md); color: white; font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: toastIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+    .toast.success { background: var(--primary); }
+    .toast.error { background: #EF4444; }
+    @keyframes toastIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .btn-secondary-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-gray); padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-inline: auto; transition: all 0.2s; }
+    .btn-secondary-outline:hover { background: #F1F5F9; color: var(--text-dark); }
+    .btn-logout { margin-top: 15px; background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 10px 20px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-inline: auto; transition: all 0.2s; }
+    .btn-logout:hover { background: #FEF2F2; }
+
+    .admin-section { background: #F8FAFC; padding: 16px; border-radius: var(--radius-md); border: 1px dashed var(--border-color); margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="bg-gradient-login" id="bgGradient"></div>
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-weight: 600; color: var(--text-dark);">Memuat Aplikasi...</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="app-container" id="appLayout" style="display:none;">
+  <div class="logo-container">
+    <div class="logo-img" id="logoBox"><i class="fas fa-link" id="logoFallback"></i></div>
+    <div class="app-title">Gett.Dot <span style="color:var(--primary);"><i class="fas fa-check-circle" style="font-size: 18px;"></i></span></div>
+    <div class="app-title" style="font-size: 22px; font-weight: 800; display: none;" id="loginTitleText">Member Hub</div>
+  </div>
+
+  <div id="loginPage">
+    <div class="form-group"><label class="form-label">USERNAME</label><input type="text" id="username" class="form-control" placeholder="Masukkan username"></div>
+    <div class="form-group"><label class="form-label">PASSWORD</label><div class="input-wrapper"><input type="password" id="password" class="form-control" placeholder="••••••••"><i class="fas fa-eye toggle-password" onclick="togglePassword('password')"></i></div></div>
+    <div class="remember-me" onclick="toggleRemember()"><input type="checkbox" id="rememberMe"><label for="rememberMe">Ingat Saya</label></div>
+    <button class="btn-login" onclick="doLogin()">Masuk</button>
+    <div class="register-link">Belum punya akun? <a href="#" onclick="showRegister()">Daftar di sini</a></div>
+  </div>
+
+  <div id="registerPage" style="display: none;">
+    <div class="form-group"><label class="form-label">USERNAME</label><input type="text" id="regUsername" class="form-control" placeholder="Pilih username baru"></div>
+    <div class="form-group"><label class="form-label">PASSWORD</label><div class="input-wrapper"><input type="password" id="regPassword" class="form-control" placeholder="Minimal 6 karakter"><i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword')"></i></div></div>
+    <div class="form-group"><label class="form-label">KONFIRMASI PASSWORD</label><div class="input-wrapper"><input type="password" id="regConfirmPassword" class="form-control" placeholder="Ulangi password"><i class="fas fa-eye toggle-password" onclick="togglePassword('regConfirmPassword')"></i></div></div>
+    <button class="btn-login" onclick="doRegister()">Daftar Sekarang</button>
+    <div class="register-link">Sudah punya akun? <a href="#" onclick="showLogin()">Masuk di sini</a></div>
+  </div>
+
+  <div id="dashboardPage">
+    <p class="welcome-text">Selamat datang di Gett.Dot Member Hub.</p>
+    <p class="warning-text">Dilarang keras membagikan link ini kepada siapapun!</p>
+    <div class="menu-list" id="menuContainer"></div>
+    <div id="adminPanelMenu" style="display: none; margin-top: 24px;">
+      <div class="menu-item" onclick="openAdminModal()" style="border-left: 5px solid var(--primary); background: #F0FDF4;"><div class="menu-item-left"><div class="menu-icon-wrapper" style="background: var(--primary);"><i class="fas fa-user-shield menu-icon"></i></div><span style="color: var(--primary);">Administrator Panel</span></div><div class="badge-note" style="border-color: var(--primary); color: var(--primary);">SETUP</div></div>
+    </div>
+    <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 8px;">
+      <button class="btn-secondary-outline" onclick="openChangePasswordModal()"><i class="fas fa-key"></i> Ubah Password</button>
+      <button class="btn-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="changePasswordModal">
+  <div class="modal-content">
+    <div class="modal-header"><h3 class="modal-title">Ubah Password</h3><button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button></div>
+    <div class="form-group"><label class="form-label">Password Lama</label><div class="input-wrapper"><input type="password" id="oldPassword" class="form-control" placeholder="••••••••"><i class="fas fa-eye toggle-password" onclick="togglePassword('oldPassword')"></i></div></div>
+    <div class="form-group"><label class="form-label">Password Baru</label><div class="input-wrapper"><input type="password" id="newPassword" class="form-control" placeholder="••••••••"><i class="fas fa-eye toggle-password" onclick="togglePassword('newPassword')"></i></div></div>
+    <div class="form-group"><label class="form-label">Konfirmasi</label><div class="input-wrapper"><input type="password" id="confirmNewPassword" class="form-control" placeholder="••••••••"><i class="fas fa-eye toggle-password" onclick="togglePassword('confirmNewPassword')"></i></div></div>
+    <button class="btn-login" onclick="submitChangePassword()">Simpan Password</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header"><h3 class="modal-title">Administrator Panel</h3><button class="modal-close" onclick="closeModal('adminModal')">&times;</button></div>
+    
+    <div class="admin-section">
+      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;"><i class="fas fa-image"></i> Upload Logo Aplikasi</h4>
+      <input type="file" id="logoUploader" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+      <button class="btn-login" style="background: var(--text-dark); box-shadow: none; font-size: 13px; padding: 10px 14px;" onclick="document.getElementById('logoUploader').click()">Pilih Gambar Logo</button>
+      <div id="logoPreviewContainer" style="margin-top: 15px; display: none; text-align: center;"><img id="logoPreview" src="https://script.google.com/macros/s/AKfycbyNOJYdBdiiJ1jX8jAGx6_J8vtvJjEV7Zk46WiEkhnfgczl0iOGGUZ8ldjDlTxX_4RLlw/exec" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); display: inline-block;"></div>
+    </div>
+
+    <div class="admin-section">
+      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;"><i class="fas fa-money-check-alt"></i> Pengaturan Rekening & QRIS</h4>
+      <label style="font-size:11px; font-weight:bold;">Upload QRIS (Maks 100KB)</label>
+      <input type="file" id="qrisUploader" accept="image/*" style="display:none;" onchange="handleQrisUpload(event)">
+      <button class="btn-secondary-outline" style="width:100%; justify-content:center; margin-bottom:8px; font-size:12px;" onclick="document.getElementById('qrisUploader').click()">Pilih Gambar QRIS</button>
+      <img id="qrisPreview" src="" style="max-width:100px; display:none; margin:0 auto 10px auto; border-radius:8px; border:1px solid #ccc;">
+      <label style="font-size:11px; font-weight:bold;">Rekening Bank</label>
+      <input type="text" id="adminBank" class="form-control" style="margin-bottom:8px; font-size:13px;" placeholder="BCA 12345678 a.n Nama">
+      <label style="font-size:11px; font-weight:bold;">E-Wallet</label>
+      <input type="text" id="adminEwallet" class="form-control" style="margin-bottom:12px; font-size:13px;" placeholder="DANA 0812345 a.n Nama">
+      <button class="btn-login" style="padding:10px; font-size:13px; background:var(--primary);" onclick="savePaymentInfo()">Simpan Rekening</button>
+    </div>
+    
+    <div class="admin-section"><h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;"><i class="fas fa-users"></i> Data Pendaftar Baru</h4><div id="adminUserList" style="max-height: 140px; overflow-y: auto;"></div></div>
+    <div class="admin-section"><h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;"><i class="fas fa-shopping-cart"></i> Data Pesanan Member</h4><div id="adminOrderList" style="max-height: 140px; overflow-y: auto;"></div></div>
+    <button class="btn-login" onclick="closeModal('adminModal')">Tutup Panel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="folderDetailModal">
+  <div class="modal-content">
+    <div class="modal-header"><h3 class="modal-title" id="folderModalTitle"><i class="fas fa-folder" id="folderModalIcon"></i> <span id="folderModalName">Detail Folder</span></h3><button class="modal-close" onclick="closeModal('folderDetailModal')">&times;</button></div>
+    <div class="folder-body" id="folderModalBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-content">
+    <div class="modal-header"><h3 class="modal-title"><i class="fas fa-wallet" style="color: #EC4899;"></i> Checkout</h3><button class="modal-close" onclick="closeModal('paymentModal')">&times;</button></div>
+    
+    <div id="payStep1">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h4 id="payProductName" style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">Nama Produk</h4>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0;">
+          <div style="font-size:12px; font-weight:bold; color:var(--text-gray);">Kuantitas:</div>
+          <div class="qty-control"><button onclick="changeQty(-1)"><i class="fas fa-minus"></i></button><span id="payQty" style="font-weight:bold; width:20px; text-align:center;">1</span><button onclick="changeQty(1)"><i class="fas fa-plus"></i></button></div>
+        </div>
+        <div style="margin-top:15px;"><div style="font-size:12px; color:var(--text-gray);">Total Pembayaran:</div><div id="payProductTotal" style="font-size: 22px; font-weight: 800; color: #EC4899;">Rp 0</div></div>
+      </div>
+      <h4 style="font-size:13px; margin-bottom:10px; text-align:center;">Pilih Metode Pembayaran</h4>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-secondary-outline" style="width: 100%; justify-content: flex-start; padding: 14px;" onclick="showQrisVa('QRIS')"><i class="fas fa-qrcode" style="color: #8B5CF6; font-size: 20px; width: 30px;"></i> QRIS (Otomatis)</button>
+        <button class="btn-secondary-outline" style="width: 100%; justify-content: flex-start; padding: 14px;" onclick="showQrisVa('Transfer Bank')"><i class="fas fa-university" style="color: #3B82F6; font-size: 20px; width: 30px;"></i> Transfer Bank (BCA/Mandiri/BRI)</button>
+        <button class="btn-secondary-outline" style="width: 100%; justify-content: flex-start; padding: 14px;" onclick="showQrisVa('E-Wallet')"><i class="fas fa-wallet" style="color: #10B981; font-size: 20px; width: 30px;"></i> E-Wallet (Dana/OVO/GoPay)</button>
+      </div>
+    </div>
+    
+    <div id="payStep2" style="display: none; text-align: center;">
+      <button class="btn-secondary-outline" style="margin-bottom:15px; border:none; padding:0; font-size:12px;" onclick="cancelPayment()"><i class="fas fa-arrow-left"></i> Kembali memilih</button>
+      <h4 id="payMethodTitle" style="font-size:15px; font-weight:800; margin-bottom:15px; color:var(--text-dark);">Pembayaran</h4>
+      <div id="payDetailsBox" style="margin-bottom:20px;"></div>
+      <div style="font-size:11px; color:var(--text-gray); margin-bottom:15px; line-height:1.4;">Pastikan Anda mentransfer tepat sesuai nominal <strong id="payConfirmTotal" style="color:#EC4899;">Rp 0</strong>. Jika sudah, klik tombol di bawah ini.</div>
+      <button class="btn-login" style="background:var(--primary); margin-bottom:10px;" onclick="submitOrder()">Saya Sudah Bayar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- ANTI MACET (FAILSAFE) & BYPASS KEAMANAN COOKIE BROWSER ---
+function getStore(k, d) { try { return localStorage.getItem(k) || d; } catch(e) { return d; } }
+function setStore(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+function delStore(k) { try { localStorage.removeItem(k); } catch(e) {} }
+
+let failsafeTimer;
+let currentUser = { username: '', role: '' };
+let paymentSettings = { qris: '', bank: 'BCA 807712345678 a.n Admin', ewallet: 'DANA 081234567890 a.n Admin' };
+
+let gettWeb_url1 = getStore('gettWeb_url1', 'member-hub.gettweb.com');
+let gettWeb_url2 = getStore('gettWeb_url2', 'member-panel.gettweb.com');
+let gettDot_url1 = getStore('gettDot_url1', 'member-hub.gettdot.com');
+let gettDot_url2 = getStore('gettDot_url2', 'member-panel.gettdot.com');
+let gettReff_url1 = getStore('gettReff_url1', 'member-hub.gettreff.com');
+let gettReff_url2 = getStore('gettReff_url2', 'member-panel.gettreff.com');
+
+const MENU_THEMES = {
+  'Video Tutorial dan Modul Ajar': { color: '#4F46E5', iconBg: 'rgba(79, 70, 229, 0.1)' },
+  'Gett.Web': { color: '#06B6D4', iconBg: 'rgba(6, 182, 212, 0.1)' },
+  'Gett.Dot': { color: '#10B981', iconBg: 'rgba(16, 185, 129, 0.1)' },
+  'Gett.Dot Reff': { color: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.1)', darkColor: '#D97706' },
+  'Folder Contoh Project': { color: '#8B5CF6', iconBg: 'rgba(139, 92, 246, 0.1)' },
+  'Testimoni Gett.Dot': { color: '#F43F5E', iconBg: 'rgba(244, 63, 94, 0.1)' },
+  'Katalog Produk Digital': { color: '#EC4899', iconBg: 'rgba(236, 72, 153, 0.1)' }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  failsafeTimer = setTimeout(() => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'block';
+    checkLoginState();
+  }, 5000); 
+
+  if(typeof google !== 'undefined' && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler((res) => {
+        clearTimeout(failsafeTimer);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('appLayout').style.display = 'block';
+        if(res.customLogo) applyCustomLogo(res.customLogo);
+        if(res.paymentConfig) paymentSettings = res.paymentConfig;
+        checkLoginState();
+      })
+      .withFailureHandler((err) => {
+        clearTimeout(failsafeTimer);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('appLayout').style.display = 'block';
+        checkLoginState();
+      })
+      .initApp();
+  } else {
+    clearTimeout(failsafeTimer);
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'block';
+    checkLoginState();
+  }
+});
+
+function showToast(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-100%)'; setTimeout(() => toast.remove(), 300); }, duration);
+}
+
+function copyText(val) {
+  const el = document.createElement('textarea');
+  el.value = val; document.body.appendChild(el); el.select();
+  document.execCommand('copy'); document.body.removeChild(el);
+  showToast('Berhasil disalin!', 'success');
+}
+
+function escapeHtml(text) { return (text||'').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function unescapeHtml(text) { return (text||'').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"); }
+function togglePassword(id) { const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
+function toggleRemember() { document.getElementById('rememberMe').checked = !document.getElementById('rememberMe').checked; }
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function applyCustomLogo(b64) { document.getElementById('logoBox').innerHTML = `<img src="${b64}">`; }
+
+function checkLoginState() {
+  const isLogged = getStore('gettDotLogged', 'false');
+  const savedUser = getStore('gettDotUser', '');
+  if (savedUser) { document.getElementById('username').value = savedUser; document.getElementById('rememberMe').checked = true; }
+  if (isLogged === 'true') { currentUser.username = savedUser || 'user'; currentUser.role = getStore('gettDotRole', 'Member'); showDashboard(); } 
+  else { showLogin(); }
+}
+
+function showLogin() {
+  document.getElementById('loginPage').style.display = 'block'; document.getElementById('registerPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'none'; document.getElementById('loginTitleText').style.display = 'block';
+  document.getElementById('loginTitleText').innerText = 'Member Hub'; document.getElementById('bgGradient').style.display = 'block';
+}
+
+function showRegister() {
+  document.getElementById('loginPage').style.display = 'none'; document.getElementById('registerPage').style.display = 'block';
+  document.getElementById('dashboardPage').style.display = 'none'; document.getElementById('loginTitleText').style.display = 'block';
+  document.getElementById('loginTitleText').innerText = 'Pendaftaran'; document.getElementById('bgGradient').style.display = 'block';
+}
+
+function showDashboard() {
+  document.getElementById('loginPage').style.display = 'none'; document.getElementById('registerPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'block'; document.getElementById('loginTitleText').style.display = 'none';
+  document.getElementById('bgGradient').style.display = 'none';
+  document.getElementById('adminPanelMenu').style.display = (currentUser.role.toLowerCase() === 'admin' || currentUser.username.toLowerCase() === 'admin') ? 'block' : 'none';
+  loadDashboardMenu();
+}
+
+function doLogin() {
+  const u = document.getElementById('username').value.trim(), p = document.getElementById('password').value, r = document.getElementById('rememberMe').checked;
+  if (!u || !p) return showToast('Wajib diisi!', 'error');
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  if(google && google.script) {
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      if(res.success) {
+        showToast(res.message, 'success');
+        currentUser.username = res.data.username; currentUser.role = res.data.role;
+        setStore('gettDotLogged', 'true'); setStore('gettDotRole', res.data.role);
+        if(r) setStore('gettDotUser', u); else delStore('gettDotUser');
+        showDashboard();
+      } else { showToast(res.message, 'error'); }
+    }).withFailureHandler(err => { document.getElementById('loadingOverlay').style.display = 'none'; showToast('Gagal terhubung server', 'error'); }).verifyLogin(u, p);
+  }
+}
+
+function doRegister() {
+  const u = document.getElementById('regUsername').value.trim(), p = document.getElementById('regPassword').value, c = document.getElementById('regConfirmPassword').value;
+  if (!u || !p || !c) return showToast('Wajib diisi!', 'error');
+  if (p !== c) return showToast('Password tidak cocok!', 'error');
+  if (p.length < 6) return showToast('Minimal 6 karakter!', 'error');
+  
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  if(google && google.script) {
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      if(res.success) { showToast(res.message, 'success'); document.getElementById('username').value = u; showLogin(); } 
+      else { showToast(res.message, 'error'); }
+    }).registerUser(u, p);
+  }
+}
+
+function doLogout() { delStore('gettDotLogged'); delStore('gettDotRole'); showToast('Berhasil keluar', 'success'); showLogin(); document.getElementById('password').value = ''; }
+
+// --- DASHBOARD MENU ---
+function loadDashboardMenu() {
+  document.getElementById('menuContainer').innerHTML = '<div style="text-align:center; padding:20px; color:#64748B;"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+  if(google && google.script) {
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) {
+        let html = '';
+        res.data.forEach(item => {
+          let theme = MENU_THEMES[item.title] || { color: '#64748B', iconBg: 'rgba(100, 116, 139, 0.1)' };
+          let note = item.note ? `<div class="badge-note"><i class="fas fa-lock"></i> NOTE</div>` : '';
+          html += `<div class="menu-item" onclick="handleMenuClick('${item.title}')" style="border-left-color:${theme.color};"><div class="menu-item-left"><div class="menu-icon-wrapper" style="background:${theme.iconBg}; color:${theme.color};"><i class="fas ${item.icon} menu-icon"></i></div><span>${item.title}</span></div>${note}</div>`;
+        });
+        document.getElementById('menuContainer').innerHTML = html;
+      }
+    }).getDashboardMenu();
+  }
+}
+
+function handleMenuClick(title) {
+  let theme = MENU_THEMES[title] || { color: '#22C55E' };
+  document.getElementById('folderModalName').innerText = title;
+  document.getElementById('folderModalName').style.color = theme.color;
+  document.getElementById('folderModalIcon').className = `fas ${getIconForTitle(title)}`;
+  document.getElementById('folderModalIcon').style.color = theme.color;
+  
+  if (title === 'Katalog Produk Digital') {
+    document.getElementById('folderModalBody').innerHTML = '<div style="text-align:center; padding:20px; color:#64748B;"><i class="fas fa-spinner fa-spin"></i> Menarik katalog...</div>';
+    openModal('folderDetailModal');
+    // Beri sedikit loading estetik
+    setTimeout(() => {
+        let html = '<div style="margin-bottom:16px; font-size:13px; color:var(--text-gray);">Pilih produk unggulan di bawah ini.</div>';
+        
+        let prods = [
+            {name: 'Template Landing Page Premium', desc: 'Format: ZIP/HTML • Lifetime Access', price: 'Rp 149.000'},
+            {name: 'Kelas Video Web App Script', desc: '40+ Video HD • Grup Mentoring', price: 'Rp 299.000'},
+            {name: 'E-Book: Sukses Bisnis Online', desc: 'PDF 150 Halaman • Free Update', price: 'Rp 99.000'}
+        ];
+
+        prods.forEach(p => {
+          html += `<div class="project-card" style="border-left:4px solid #EC4899;"><div class="project-info"><h4 style="font-size:14px; font-weight:700;">${escapeHtml(p.name)}</h4><span style="font-size:11px; color:var(--text-gray);">${escapeHtml(p.desc)}</span><span style="font-size:13px; font-weight:800; color:var(--text-dark); margin-top:4px;">${escapeHtml(p.price)}</span></div><button class="btn-login" style="background:#EC4899; padding:8px 12px; font-size:12px; width:auto; box-shadow:none;" onclick="beli('${escapeHtml(p.name)}', '${escapeHtml(p.price)}')"><i class="fas fa-shopping-cart"></i> Beli</button></div>`;
+        });
+        document.getElementById('folderModalBody').innerHTML = html;
+    }, 400);
+  } else {
+    document.getElementById('folderModalBody').innerHTML = `<div style="text-align:center; padding:30px;"><i class="${getIconForTitle(title)} fas" style="font-size:40px; color:${theme.color}; margin-bottom:15px;"></i><p>Isi folder <b>${title}</b> dapat dikonfigurasi lebih lanjut.</p></div>`;
+    openModal('folderDetailModal');
+  }
+}
+
+function getIconForTitle(title) {
+  const icons = {'Video Tutorial dan Modul Ajar': 'fa-video', 'Gett.Web': 'fa-globe', 'Gett.Dot': 'fa-robot', 'Gett.Dot Reff': 'fa-users', 'Folder Contoh Project': 'fa-folder-open', 'Testimoni Gett.Dot': 'fa-quote-left', 'Katalog Produk Digital': 'fa-shopping-cart'};
+  return icons[title] || 'fa-folder';
+}
+
+// --- CHECKOUT & PEMBAYARAN ---
+let pendingOrder = { name: '', basePrice: 0, qty: 1, totalText: '' };
+let selectedMethod = '';
+
+function beli(name, priceStr) {
+  let cleanPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+  pendingOrder = { name: unescapeHtml(name), basePrice: cleanPrice, qty: 1, totalText: priceStr };
+  
+  document.getElementById('payProductName').innerText = pendingOrder.name;
+  document.getElementById('payQty').innerText = pendingOrder.qty;
+  updateTotalPrice();
+  
+  document.getElementById('payStep1').style.display = 'block';
+  document.getElementById('payStep2').style.display = 'none';
+  openModal('paymentModal');
+}
+
+function changeQty(delta) {
+  pendingOrder.qty += delta;
+  if (pendingOrder.qty < 1) pendingOrder.qty = 1;
+  document.getElementById('payQty').innerText = pendingOrder.qty;
+  updateTotalPrice();
+}
+
+function updateTotalPrice() {
+  let total = pendingOrder.basePrice * pendingOrder.qty;
+  let formatTotal = 'Rp ' + total.toLocaleString('id-ID');
+  pendingOrder.totalText = formatTotal;
+  document.getElementById('payProductTotal').innerText = formatTotal;
+  document.getElementById('payConfirmTotal').innerText = formatTotal;
+}
+
+function showQrisVa(method) {
+  selectedMethod = method;
+  document.getElementById('payStep1').style.display = 'none';
+  document.getElementById('payStep2').style.display = 'block';
+  document.getElementById('payMethodTitle').innerText = 'Pembayaran via ' + method;
+  
+  let detailsHtml = '';
+  if (method === 'QRIS') {
+    if (paymentSettings.qris) {
+      detailsHtml = `<img src="${paymentSettings.qris}" style="max-width:200px; width:100%; border-radius:8px; margin:0 auto; display:block; border:1px solid #ccc;">`;
+    } else { detailsHtml = `<p style="font-size:12px; font-style:italic;">Admin belum mengunggah gambar QRIS.</p>`; }
+  } else if (method === 'Transfer Bank') {
+    detailsHtml = `<div style="background:#F1F5F9; padding:12px; border-radius:8px; font-family:monospace; font-size:16px; font-weight:bold; letter-spacing:1px; margin-bottom:8px;">${paymentSettings.bank}</div><button class="btn-secondary-outline" onclick="copyText('${paymentSettings.bank}')" style="width:100%; justify-content:center; font-size:11px;"><i class="fas fa-copy"></i> Salin Nomor Rekening</button>`;
+  } else {
+    detailsHtml = `<div style="background:#F1F5F9; padding:12px; border-radius:8px; font-family:monospace; font-size:16px; font-weight:bold; letter-spacing:1px; margin-bottom:8px;">${paymentSettings.ewallet}</div><button class="btn-secondary-outline" onclick="copyText('${paymentSettings.ewallet}')" style="width:100%; justify-content:center; font-size:11px;"><i class="fas fa-copy"></i> Salin Nomor E-Wallet</button>`;
+  }
+  document.getElementById('payDetailsBox').innerHTML = detailsHtml;
+}
+
+function cancelPayment() {
+  document.getElementById('payStep1').style.display = 'block';
+  document.getElementById('payStep2').style.display = 'none';
+}
+
+function submitOrder() {
+  closeModal('paymentModal');
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  let finalProductName = `${pendingOrder.name} (x${pendingOrder.qty})`;
+  
+  google.script.run.withSuccessHandler(res => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    showToast(res.message, res.success ? 'success' : 'error');
+  }).withFailureHandler(err => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    showToast('Gagal memproses pesanan.', 'error');
+  }).addToCart(currentUser.username, finalProductName, pendingOrder.totalText, selectedMethod);
+}
+
+
+// --- ADMIN PANEL ---
+function openAdminModal() {
+  document.getElementById('adminBank').value = paymentSettings.bank;
+  document.getElementById('adminEwallet').value = paymentSettings.ewallet;
+  if(paymentSettings.qris) { document.getElementById('qrisPreview').src = paymentSettings.qris; document.getElementById('qrisPreview').style.display = 'block'; }
+  
+  document.getElementById('adminUserList').innerHTML = '<p style="text-align:center; font-size:12px; color:var(--text-gray);"><i class="fas fa-spinner fa-spin"></i> Menarik data...</p>';
+  document.getElementById('adminOrderList').innerHTML = '<p style="text-align:center; font-size:12px; color:var(--text-gray);"><i class="fas fa-spinner fa-spin"></i> Menarik data...</p>';
+  openModal('adminModal');
+
+  google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+      document.getElementById('adminUserList').innerHTML = res.users.length ? `<ul style="list-style:none;">` + res.users.map(u => `<li style="background:#fff;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:6px;display:flex;justify-content:space-between;"><strong style="font-size:13px;">${escapeHtml(u.username)}</strong><span style="font-size:10px;color:var(--primary);background:#DCFCE7;padding:3px 8px;border-radius:12px;">Member</span></li>`).join('') + `</ul>` : '<p style="text-align:center;font-size:11px;">Belum ada pendaftar.</p>';
+      
+      document.getElementById('adminOrderList').innerHTML = res.orders.length ? `<ul style="list-style:none;">` + res.orders.map(o => `<li style="background:#fff;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:6px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:13px;">${escapeHtml(o.username)}</strong><span style="font-size:12px;color:#EC4899;font-weight:800;">${escapeHtml(o.price)}</span></div><div style="font-size:11px;color:var(--text-gray);display:flex;justify-content:space-between;"><span>${escapeHtml(o.product)}</span><span style="background:#F1F5F9;padding:2px 6px;border-radius:4px;font-weight:700;">${escapeHtml(o.method)}</span></div></li>`).join('') + `</ul>` : '<p style="text-align:center;font-size:11px;">Belum ada pesanan.</p>';
+    }
+  }).getAdminData();
+}
+
+let newQrisBase64 = null;
+function handleQrisUpload(event) {
+  const file = event.target.files[0]; if (!file || !file.type.match('image.*')) return showToast('Hanya gambar!', 'error');
+  if (file.size > 100 * 1024) return showToast('Maksimal 100 KB!', 'error');
+  const r = new FileReader();
+  r.onload = e => { newQrisBase64 = e.target.result; document.getElementById('qrisPreview').src = newQrisBase64; document.getElementById('qrisPreview').style.display = 'block'; showToast('Gambar ditambahkan, jangan lupa Simpan!', 'success'); };
+  r.readAsDataURL(file);
+}
+
+function savePaymentInfo() {
+  const b = document.getElementById('adminBank').value.trim();
+  const ew = document.getElementById('adminEwallet').value.trim();
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  google.script.run.withSuccessHandler(res => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    if(res.success) { showToast('Pengaturan Pembayaran Tersimpan!', 'success'); paymentSettings.bank = b; paymentSettings.ewallet = ew; if(newQrisBase64) paymentSettings.qris = newQrisBase64; }
+  }).savePaymentSettings(newQrisBase64, b, ew);
+}
+
+function handleLogoUpload(event) {
+  const file = event.target.files[0]; if (!file || file.size > 100 * 1024) return showToast('Maksimal 100 KB!', 'error');
+  const r = new FileReader();
+  r.onload = e => { 
+    const b64 = e.target.result; document.getElementById('loadingOverlay').style.display = 'flex';
+    google.script.run.withSuccessHandler(res => { document.getElementById('loadingOverlay').style.display = 'none'; applyCustomLogo(b64); showToast('Logo tersimpan!', 'success'); }).saveCustomLogo(b64);
+  };
+  r.readAsDataURL(file);
+}
+
+function openChangePasswordModal() { document.getElementById('oldPassword').value=''; document.getElementById('newPassword').value=''; document.getElementById('confirmNewPassword').value=''; openModal('changePasswordModal'); }
+function submitChangePassword() {
+  const op = document.getElementById('oldPassword').value, np = document.getElementById('newPassword').value, cp = document.getElementById('confirmNewPassword').value;
+  if (!op || !np || !cp) return showToast('Wajib diisi!', 'error'); if (np !== cp) return showToast('Konfirmasi tidak cocok!', 'error');
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  google.script.run.withSuccessHandler(res => { document.getElementById('loadingOverlay').style.display = 'none'; showToast(res.message, res.success?'success':'error'); if(res.success) closeModal('changePasswordModal'); }).changePassword(currentUser.username, op, np);
+}
+</script>
+</body>
+</html>

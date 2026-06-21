@@ -1,0 +1,299 @@
+// ============================================================
+// KONFIGURASI GLOBAL
+// ============================================================
+const CONFIG = {
+  SPREADSHEET_NAME: 'DB_GettDot_App',
+  SHEETS: {
+    USERS: 'Users',
+    LOGS: 'Logs',
+    ORDERS: 'Orders'
+  },
+  APP_TITLE: 'Gett.Dot Member Hub',
+  VERSION: '1.1.0'
+};
+
+function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle(CONFIG.APP_TITLE)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
+}
+
+function getOrCreateSpreadsheet() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  let spreadsheetId = scriptProperties.getProperty('SPREADSHEET_ID');
+  
+  if (spreadsheetId) {
+    try {
+      const ss = SpreadsheetApp.openById(spreadsheetId);
+      return ss;
+    } catch(e) {
+      scriptProperties.deleteProperty('SPREADSHEET_ID');
+      spreadsheetId = null;
+    }
+  }
+  
+  const files = DriveApp.getFilesByName(CONFIG.SPREADSHEET_NAME);
+  while (files.hasNext()) {
+    const file = files.next();
+    if (file.getMimeType() === MimeType.GOOGLE_SHEETS) {
+      const ss = SpreadsheetApp.open(file);
+      scriptProperties.setProperty('SPREADSHEET_ID', ss.getId());
+      return ss;
+    }
+  }
+  
+  const newSS = SpreadsheetApp.create(CONFIG.SPREADSHEET_NAME);
+  scriptProperties.setProperty('SPREADSHEET_ID', newSS.getId());
+  setupSheets(newSS);
+  return newSS;
+}
+
+function getOrCreateSheet(spreadsheet, sheetName, headers) {
+  let sheet = spreadsheet.getSheetByName(sheetName);
+  if (sheet) return sheet;
+  
+  sheet = spreadsheet.insertSheet(sheetName);
+  if (headers && headers.length > 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setBackground('#1E1B4B').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function setupSheets(spreadsheet) {
+  const userSheet = getOrCreateSheet(spreadsheet, CONFIG.SHEETS.USERS, ['ID', 'Username', 'Password', 'Role', 'Created_At']);
+  const data = userSheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    userSheet.appendRow(['USR-001', 'admin', 'admin123', 'Admin', new Date()]);
+  }
+  getOrCreateSheet(spreadsheet, CONFIG.SHEETS.LOGS, ['Timestamp', 'Username', 'Action', 'Status']);
+  getOrCreateSheet(spreadsheet, CONFIG.SHEETS.ORDERS, ['Timestamp', 'Username', 'Product', 'Price', 'Payment_Method']);
+}
+
+function initApp() {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    setupSheets(ss);
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const customLogo = scriptProperties.getProperty('CUSTOM_LOGO') || '';
+    
+    // Tarik data metode pembayaran
+    const bank = scriptProperties.getProperty('ADMIN_BANK') || 'BCA 807712345678 a.n Admin';
+    const ewallet = scriptProperties.getProperty('ADMIN_EWALLET') || 'DANA 081234567890 a.n Admin';
+    const qris = scriptProperties.getProperty('ADMIN_QRIS') || '';
+
+    return { 
+      success: true, 
+      message: 'Database siap digunakan',
+      spreadsheetId: ss.getId(),
+      customLogo: customLogo,
+      paymentConfig: { qris: qris, bank: bank, ewallet: ewallet }
+    };
+  } catch(e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+function verifyLogin(username, password) {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
+    const logSheet = ss.getSheetByName(CONFIG.SHEETS.LOGS);
+    
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === username && data[i][2] === password) {
+        logSheet.appendRow([new Date(), username, 'Login', 'Success']);
+        return { success: true, message: 'Login berhasil!', data: { username: username, role: data[i][3] } };
+      }
+    }
+    logSheet.appendRow([new Date(), username, 'Login Attempt', 'Failed']);
+    return { success: false, message: 'Username atau Password salah!' };
+  } catch(e) {
+    return { success: false, message: 'Terjadi kesalahan sistem: ' + e.toString() };
+  }
+}
+
+function registerUser(username, password) {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
+    const logSheet = ss.getSheetByName(CONFIG.SHEETS.LOGS);
+    
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1].toString().toLowerCase() === username.toLowerCase()) {
+        return { success: false, message: 'Username sudah terdaftar!' };
+      }
+    }
+    
+    const newId = 'USR-' + new Date().getTime().toString().slice(-6);
+    sheet.appendRow([newId, username, password, 'Member', new Date()]);
+    logSheet.appendRow([new Date(), username, 'Register', 'Success']);
+    
+    return { success: true, message: 'Pendaftaran berhasil! Silakan login.' };
+  } catch(e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+function changePassword(username, oldPassword, newPassword) {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === username) {
+        if (data[i][2] !== oldPassword) return { success: false, message: 'Password lama tidak sesuai!' };
+        sheet.getRange(i + 1, 3).setValue(newPassword);
+        return { success: true, message: 'Password berhasil diubah!' };
+      }
+    }
+    return { success: false, message: 'Pengguna tidak ditemukan.' };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function addToCart(username, productName, price, method) {
+  try {
+    const sheet = getOrCreateSpreadsheet().getSheetByName(CONFIG.SHEETS.ORDERS);
+    sheet.appendRow([new Date(), username, productName, price, method]);
+    return { success: true, message: 'Pesanan ' + productName + ' berhasil diverifikasi!' };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function getDashboardMenu() {
+  return {
+    success: true,
+    data: [
+      { id: 1, title: 'Video Tutorial dan Modul Ajar', icon: 'fa-video', note: false },
+      { id: 2, title: 'Gett.Web', icon: 'fa-globe', note: true },
+      { id: 3, title: 'Gett.Dot', icon: 'fa-robot', note: true },
+      { id: 4, title: 'Gett.Dot Reff', icon: 'fa-users', note: true },
+      { id: 5, title: 'Folder Contoh Project', icon: 'fa-folder', note: true },
+      { id: 6, title: 'Testimoni Gett.Dot', icon: 'fa-quote-left', note: false },
+      { id: 7, title: 'Katalog Produk Digital', icon: 'fa-shopping-cart', note: false }
+    ]
+  };
+}
+
+function getAdminData() {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    
+    let users = [];
+    const userSheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
+    if (userSheet) {
+      const userData = userSheet.getDataRange().getValues();
+      for (let i = userData.length - 1; i > 0; i--) {
+        if (userData[i][3] === 'Member') {
+          users.push({ username: userData[i][1], role: userData[i][3] });
+          if (users.length >= 10) break; 
+        }
+      }
+    }
+
+    let orders = [];
+    const orderSheet = ss.getSheetByName(CONFIG.SHEETS.ORDERS);
+    if (orderSheet) {
+      const orderData = orderSheet.getDataRange().getValues();
+      for (let i = orderData.length - 1; i > 0; i--) {
+        orders.push({ username: orderData[i][1], product: orderData[i][2], price: orderData[i][3], method: orderData[i][4] || '-' });
+        if (orders.length >= 10) break; 
+      }
+    }
+
+    return { success: true, users: users, orders: orders };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function saveCustomLogo(base64Data) {
+  try {
+    PropertiesService.getScriptProperties().setProperty('CUSTOM_LOGO', base64Data);
+    return { success: true, message: 'Logo berhasil diperbarui secara global!' };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function savePaymentSettings(qrisBase64, bank, ewallet) {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    if (qrisBase64) scriptProperties.setProperty('ADMIN_QRIS', qrisBase64);
+    scriptProperties.setProperty('ADMIN_BANK', bank);
+    scriptProperties.setProperty('ADMIN_EWALLET', ewallet);
+    return { success: true, message: 'Pengaturan Pembayaran Tersimpan!' };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+// ============================================================
+// FUNGSI API KHUSUS UNTUK BOT N8N (ENDPOINT)
+// ============================================================
+
+/**
+ * Menerima request POST dari HTTP Request Tool n8n
+ */
+function doPost(e) {
+  try {
+    var data_untuk_ai = {
+      "status_sistem": "Aktif dan Online",
+      "pesan": "Berhasil terhubung ke server backend Gett.Dot Member Hub",
+      "versi_aplikasi": CONFIG.VERSION,
+      "daftar_menu_layanan": [
+        "Video Tutorial dan Modul Ajar",
+        "Gett.Web",
+        "Gett.Dot (Chatbot)",
+        "Gett.Dot Reff",
+        "Folder Contoh Project",
+        "Testimoni Gett.Dot"
+      ],
+      "informasi_akses": {
+        "link_login_dan_daftar": "https://script.google.com/macros/s/AKfycbyNOJYdBdiiJ1jX8jAGx6_J8vtvJjEV7Zk46WiEkhnfgczl0iOGGUZ8ldjDlTxX_4RLlw/exec",
+        "instruksi_untuk_ai": "Jika pelanggan menanyakan layanan, cara mendaftar, atau cara akses, SELALU berikan link login ini secara lengkap tanpa disingkat."
+      }
+    };
+
+    return ContentService.createTextOutput(JSON.stringify(data_untuk_ai))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch(error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "Error",
+      "pesan": error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+/**
+ * Mendaftarkan Pengguna Baru dari Halaman Login
+ */
+function registerUser(username, password) {
+  try {
+    const ss = getOrCreateSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
+    const logSheet = ss.getSheetByName(CONFIG.SHEETS.LOGS);
+    
+    // 1. Cek apakah username sudah dipakai orang lain
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === username) {
+        logSheet.appendRow([new Date(), username, 'Register Attempt', 'Failed - Username exists']);
+        return { success: false, message: 'Username sudah digunakan, silakan pilih yang lain ya.' };
+      }
+    }
+    
+    // 2. Buat ID User baru (Contoh: USR-002, USR-003, dst)
+    const newIdNum = data.length; 
+    const newId = 'USR-' + ('000' + newIdNum).slice(-3);
+    
+    // 3. Simpan data user baru ke database Google Sheets
+    sheet.appendRow([newId, username, password, 'Member', new Date()]);
+    
+    // 4. Catat aktivitas di Log
+    logSheet.appendRow([new Date(), username, 'Register', 'Success']);
+    
+    return { success: true, message: 'Pendaftaran berhasil! Silakan masuk menggunakan akun baru Anda.' };
+    
+  } catch(e) {
+    console.error('Error registerUser:', e);
+    return { success: false, message: 'Terjadi kesalahan sistem: ' + e.toString() };
+  }
+}
